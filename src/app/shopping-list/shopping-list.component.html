@@ -1,0 +1,13 @@
+<div class="row">
+    <div class="col-xs-10">
+        <app-shopping-edit></app-shopping-edit>
+        <hr>
+        <ul class="list-group mb-3">
+            <!--            async pipe will handle the observable subscription to trigger when resolved-->
+            <a class="list-group-item" style="cursor: pointer"
+               *ngFor="let ingredient of (ingredients | async)?.ingredients; let id = index" (click)="onEditItem(id)">
+                {{ingredient.name}} ({{ingredient.amount}})
+            </a>
+        </ul>
+    </div>
+</div>
