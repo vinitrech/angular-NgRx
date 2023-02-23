@@ -10,9 +10,8 @@ import {Store} from "@ngrx/store";
     templateUrl: './shopping-list.component.html',
     styleUrls: ['./shopping-list.component.css']
 })
-export class ShoppingListComponent implements OnInit, OnDestroy {
+export class ShoppingListComponent implements OnInit {
     ingredients: Observable<{ ingredients: Ingredient[] }> = new Observable<{ ingredients: Ingredient[] }>();
-    // private ingredientsChanged: Subscription = new Subscription();
 
     constructor(private shoppingListService: ShoppingListService,
                 private loggingService: LoggingService,
@@ -20,21 +19,8 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-
         this.ingredients = this.store.select('shoppingList') // this takes care of subscribing to changes and initializing
-
-        // this.ingredients = this.shoppingListService.getIngredients();
-        //
-        // this.ingredientsChanged = this.shoppingListService.onIngredientAdded
-        //     .subscribe((ingredients: Ingredient[]) => {
-        //         this.ingredients = ingredients;
-        //     });
-
         this.loggingService.printLog('Hello from Shopping List Component ngOnInit')
-    }
-
-    ngOnDestroy() {
-        // this.ingredientsChanged.unsubscribe();
     }
 
     onEditItem(id: number) {
