@@ -5,5 +5,7 @@ export const ADD_INGREDIENT = 'ADD_INGREDIENT'; // convention of using constant 
 
 export class AddIngredient implements Action {
     readonly type: string = ADD_INGREDIENT; // readonly is a good practice for type safety
-    payload: Ingredient = new Ingredient("name", 1);
+
+    constructor(public payload: Ingredient) {
+    }
 }

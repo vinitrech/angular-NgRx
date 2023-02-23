@@ -14,7 +14,7 @@ export function shoppingListReducer(state = initialState, action: Action) { // d
         case ShoppingListActions.ADD_INGREDIENT: // naming convention
             return {
                 ...state, // always copy the old data and then override what's needed
-                ingredients: [
+                ingredients: [ // override ingredients
                     ...state.ingredients,
                     (<ShoppingListActions.AddIngredient>action).payload
                 ]
