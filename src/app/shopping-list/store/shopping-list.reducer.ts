@@ -27,6 +27,35 @@ export function shoppingListReducer(state = initialState, action: Action) { // d
                     ...(<ShoppingListActions.AddIngredients>action).payload
                 ]
             };
+        case ShoppingListActions.UPDATE_INGREDIENT:
+
+            // ############## IMPORTANT ##############
+            // Always edit data immutably, copying and editing the new object and not altering the state directly
+
+            const ingredientIndex = (<ShoppingListActions.UpdateIngredient>action).payload.index;
+            const ingredientNewData = (<ShoppingListActions.UpdateIngredient>action).payload.ingredient;
+
+            const updatedIngredient = {
+                ...state.ingredients[ingredientIndex], // copy all values from previous state
+                ...ingredientNewData // override properties with updated values
+            }
+
+            const updatedIngredients = [...state.ingredients];
+            updatedIngredients[ingredientIndex] = updatedIngredient;
+
+            return {
+                ...state,
+                ingredients: updatedIngredients
+            };
+        case ShoppingListActions.DELETE_INGREDIENT:
+            const actionPayload = (<ShoppingListActions.DeleteIngredient>action).payload
+
+            return {
+                ...state,
+                ingredients: state.ingredients.filter((ig, igIndex) => {
+                    return igIndex !== actionPayload
+                })
+            };
         default:
             return state;
     }

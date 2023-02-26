@@ -43,7 +43,11 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
         const newIngredient = new Ingredient(value.name, value.amount);
 
         if (this.editMode) {
-            this.shoppingListService.updateIngredient(this.editedItemIndex, newIngredient);
+            // this.shoppingListService.updateIngredient(this.editedItemIndex, newIngredient);
+            this.store.dispatch(new ShoppingListActions.UpdateIngredient({
+                index: this.editedItemIndex,
+                ingredient: newIngredient
+            }))
         } else {
             // this.shoppingListService.addIngredient(newIngredient);
             this.store.dispatch(new ShoppingListActions.AddIngredient(newIngredient)); // the action dispatched will hit the store and then all the reducers. In the reducers the action's type is checked and treated accordingly and then saved in the store.
@@ -58,7 +62,8 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
     }
 
     removeIngredient() {
-        this.shoppingListService.removeIngredient(this.editedItemIndex);
+        // this.shoppingListService.removeIngredient(this.editedItemIndex);
+        this.store.dispatch(new ShoppingListActions.DeleteIngredient(this.editedItemIndex));
         this.resetForm();
     }
 }
