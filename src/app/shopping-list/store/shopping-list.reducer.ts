@@ -2,14 +2,26 @@ import {Ingredient} from "../../shared/ingredient.model";
 import * as ShoppingListActions from "./shopping-list.actions";
 import {Action} from "@ngrx/store";
 
-const initialState: { ingredients: Ingredient[] } = {
+export interface State { // always prefer interfaces to types, only use types when interfaces don't suffice
+    ingredients: Ingredient[],
+    editedIngredient: Ingredient | null,
+    editedIngredientIndex: number
+}
+
+export interface AppState { // creating interface to encapsulate the store state in the shoppingListReducer's point of view, so that the places that use this reducer only have access to the shoppingList state
+    shoppingList: State
+}
+
+const initialState: State = {
     ingredients: [
         new Ingredient("Apples", 1),
         new Ingredient("Tomatoes", 1)
-    ]
+    ],
+    editedIngredient: null,
+    editedIngredientIndex: -1
 }
 
-export function shoppingListReducer(state = initialState, action: Action) { // default value assignment to the state param
+export function shoppingListReducer(state: State = initialState, action: Action) { // default value assignment to the state param
     switch (action.type) {
         case ShoppingListActions.ADD_INGREDIENT: // naming convention
             return {
