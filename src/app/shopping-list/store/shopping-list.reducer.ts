@@ -44,29 +44,40 @@ export function shoppingListReducer(state: State = initialState, action: Action)
             // ############## IMPORTANT ##############
             // Always edit data immutably, copying and editing the new object and not altering the state directly
 
-            const ingredientIndex = (<ShoppingListActions.UpdateIngredient>action).payload.index;
-            const ingredientNewData = (<ShoppingListActions.UpdateIngredient>action).payload.ingredient;
-
             const updatedIngredient = {
-                ...state.ingredients[ingredientIndex], // copy all values from previous state
-                ...ingredientNewData // override properties with updated values
+                ...state.ingredients[state.editedIngredientIndex], // copy all values from previous state
+                ...(<ShoppingListActions.UpdateIngredient>action).payload // override properties with updated values
             }
 
             const updatedIngredients = [...state.ingredients];
-            updatedIngredients[ingredientIndex] = updatedIngredient;
+            updatedIngredients[state.editedIngredientIndex] = updatedIngredient;
 
             return {
                 ...state,
-                ingredients: updatedIngredients
+                ingredients: updatedIngredients,
+                editedIngredientIndex: -1,
+                editedIngredient: null
             };
         case ShoppingListActions.DELETE_INGREDIENT:
-            const actionPayload = (<ShoppingListActions.DeleteIngredient>action).payload
-
             return {
                 ...state,
                 ingredients: state.ingredients.filter((ig, igIndex) => {
-                    return igIndex !== actionPayload
-                })
+                    return igIndex !== state.editedIngredientIndex
+                }),
+                editedIngredientIndex: -1,
+                editedIngredient: null
+            };
+        case ShoppingListActions.START_EDIT:
+            return {
+                ...state,
+                editedIngredientIndex: (<ShoppingListActions.StartEdit>action).payload,
+                updatedIngredient: {...state.ingredients[(<ShoppingListActions.StartEdit>action).payload]} // copy the ingredient to a new object, because ingredients are an array inside the state, and it is a reference type. So, if we should edit the ingredient, it would change directly inside the store, which is wrong.
+            };
+        case ShoppingListActions.STOP_EDIT:
+            return {
+                ...state,
+                editedIngredient: null,
+                editedIngredientIndex: -1
             };
         default:
             return state;
