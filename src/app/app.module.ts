@@ -8,7 +8,7 @@ import {HeaderComponent} from "./header/header.component";
 import {SharedModule} from "./shared/shared.module";
 import {CoreModule} from "./core.module";
 import {StoreModule} from "@ngrx/store";
-import {shoppingListReducer} from "./shopping-list/store/shopping-list.reducer";
+import * as fromApp from "./store/app.reducer";
 
 // There should not be unused imports here, they would be bundled even if not used.
 
@@ -21,9 +21,7 @@ import {shoppingListReducer} from "./shopping-list/store/shopping-list.reducer";
         BrowserModule,
         NgbModule,
         AppRoutingModule,
-        StoreModule.forRoot({
-            shoppingList: shoppingListReducer
-        }),
+        StoreModule.forRoot(fromApp.appReducer),
         HttpClientModule,
         SharedModule,// Components, directives, pipes work standalone inside modules, so every module needs its own imports. The only exception are services, which can be declared in the AppModule only once, and used application wide
         CoreModule

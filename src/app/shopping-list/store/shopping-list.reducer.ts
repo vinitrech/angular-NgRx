@@ -8,10 +8,6 @@ export interface State { // always prefer interfaces to types, only use types wh
     editedIngredientIndex: number
 }
 
-export interface AppState { // creating interface to encapsulate the store state in the shoppingListReducer's point of view, so that the places that use this reducer only have access to the shoppingList state
-    shoppingList: State
-}
-
 const initialState: State = {
     ingredients: [
         new Ingredient("Apples", 1),

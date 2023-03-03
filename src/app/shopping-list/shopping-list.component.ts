@@ -3,7 +3,7 @@ import {Ingredient} from "../shared/ingredient.model";
 import {Observable} from "rxjs";
 import {LoggingService} from "../logging.service";
 import {Store} from "@ngrx/store";
-import * as fromShoppingList from "./store/shopping-list.reducer";
+import * as fromApp from "../store/app.reducer";
 import * as ShoppingListActions from "./store/shopping-list.actions"
 
 @Component({
@@ -16,7 +16,7 @@ export class ShoppingListComponent implements OnInit {
 
     constructor(
         private loggingService: LoggingService,
-        private store: Store<fromShoppingList.AppState>) {
+        private store: Store<fromApp.AppState>) {
     }
 
     ngOnInit() {
