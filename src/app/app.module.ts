@@ -21,7 +21,7 @@ import * as fromApp from "./store/app.reducer";
         BrowserModule,
         NgbModule,
         AppRoutingModule,
-        StoreModule.forRoot(fromApp.appReducer),
+        StoreModule.forRoot(fromApp.appReducer), // upon initializing, there will be initial actions dispatched / any action dispatched hits ALL reducers
         HttpClientModule,
         SharedModule,// Components, directives, pipes work standalone inside modules, so every module needs its own imports. The only exception are services, which can be declared in the AppModule only once, and used application wide
         CoreModule
