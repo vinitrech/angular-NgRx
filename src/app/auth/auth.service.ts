@@ -4,6 +4,9 @@ import {BehaviorSubject, catchError, Subject, tap, throwError} from "rxjs";
 import {User} from "./user.model";
 import {Router} from "@angular/router";
 import {environment} from "../../environments/environment";
+import {Store} from "@ngrx/store";
+import * as fromApp from "../store/app.reducer"
+import * as AuthActions from "./store/auth.actions";
 
 export interface AuthResponseData {
     kind: string;
@@ -20,7 +23,7 @@ export class AuthService {
     loggedUser: BehaviorSubject<null | User> = new BehaviorSubject<null | User>(null); // behaviorSubject will emit the latest value when a new subscriber listens
     token: string = '';
 
-    constructor(private httpClient: HttpClient, private router: Router) {
+    constructor(private httpClient: HttpClient, private router: Router, private store: Store<fromApp.AppState>) {
 
     }
 
@@ -78,7 +81,7 @@ export class AuthService {
             // @ts-ignore <- added ignore due to the fact that the localstorage item will never be null when it reaches this point
         } = JSON.parse(localStorage.getItem('userData'));
 
-        const loadedUser = new User(
+        const loadedUser: User = new User(
             userData.email,
             userData.id,
             userData._token,
@@ -86,7 +89,12 @@ export class AuthService {
         );
 
         if (loadedUser.token) {
-            this.loggedUser.next(loadedUser);
+            this.store.dispatch(new AuthActions.Login({
+                email: loadedUser.email,
+                userId: loadedUser.id,
+                token: loadedUser.token,
+                expirationDate: new Date(userData._tokenExpirationDate),
+            }));
         } else {
             localStorage.removeItem('userData');
         }
@@ -94,14 +102,19 @@ export class AuthService {
 
     logout() {
         localStorage.removeItem('userData');
-        this.loggedUser.next(null);
+        this.store.dispatch(new AuthActions.Logout());
         this.router.navigate(['/auth']);
     }
 
     private handleAuthentication(email: string, userId: string, token: string, expiresIn: number) {
         const expirationDate = new Date(new Date().getTime() + expiresIn * 1000); // converts the response data to milliseconds and then add to current time
         const user = new User(email, userId, token, expirationDate);
-        this.loggedUser.next(user);
+        this.store.dispatch(new AuthActions.Login({
+            email: user.email,
+            userId: user.id,
+            token: token,
+            expirationDate: expirationDate
+        }));
         localStorage.setItem('userData', JSON.stringify(user));
     }
 
