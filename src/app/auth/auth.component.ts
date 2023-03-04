@@ -88,10 +88,6 @@ export class AuthComponent implements OnDestroy, OnInit {
             authObservable = this.authService.signup(email, password);
         }
 
-        this.store.select('auth').subscribe(authState => {
-
-        })
-
         // authObservable.subscribe({ // Subscribe now takes only 1 argument, other signatures are deprecated. Pass an object specifying the next, error and complete callbacks.
         //     next: (responseData) => {
         //         console.log(responseData);
