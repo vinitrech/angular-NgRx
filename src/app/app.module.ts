@@ -9,6 +9,8 @@ import {SharedModule} from "./shared/shared.module";
 import {CoreModule} from "./core.module";
 import {StoreModule} from "@ngrx/store";
 import * as fromApp from "./store/app.reducer";
+import {EffectsModule} from "@ngrx/effects";
+import {AuthEffects} from "./auth/store/auth.effects";
 
 // There should not be unused imports here, they would be bundled even if not used.
 
@@ -22,6 +24,7 @@ import * as fromApp from "./store/app.reducer";
         NgbModule,
         AppRoutingModule,
         StoreModule.forRoot(fromApp.appReducer), // upon initializing, there will be initial actions dispatched / any action dispatched hits ALL reducers
+        EffectsModule.forRoot([AuthEffects]),
         HttpClientModule,
         SharedModule,// Components, directives, pipes work standalone inside modules, so every module needs its own imports. The only exception are services, which can be declared in the AppModule only once, and used application wide
         CoreModule
