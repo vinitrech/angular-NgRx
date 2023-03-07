@@ -62,6 +62,14 @@ const handleError = (error: HttpErrorResponse) => {
 export class AuthEffects {
     // All actions dispatched run through the pipe, then ofType filters which type of action should be handled by this observer
 
+    /* ###################### Quick note on RXJS map operators ######################
+        map = transform values of the observable and return a new one
+        switchMap = cancels previous observable and creates a new one
+        exhaustMap = creates an observable and cancels every other that comes after
+        concatMap = creates a 'queue' of observables, where one must complete before calling the next, preserving order
+        mergeMap = creates observables concurrently without considering order
+     */
+
     authSignup = createEffect(() =>
         this.actions$.pipe(ofType(AuthActions.SIGNUP_START),
             switchMap((authData: AuthActions.SignupStart) => { // switchMap returns a new observable
