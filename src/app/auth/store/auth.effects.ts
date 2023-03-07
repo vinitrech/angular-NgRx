@@ -5,6 +5,7 @@ import {environment} from "../../../environments/environment";
 import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 import {Router} from "@angular/router";
+import {User} from "../user.model";
 
 export interface AuthResponseData {
     kind: string;
@@ -18,6 +19,16 @@ export interface AuthResponseData {
 
 const handleAuthentication = (resData: AuthResponseData) => {
     const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000);
+
+    const user = new User(
+        resData.email,
+        resData.localId,
+        resData.idToken,
+        expirationDate
+    )
+
+    localStorage.setItem('userData', JSON.stringify(user));
+
     return new AuthActions.AuthSuccess({ // this action gets dispatched automatically by createEffect()
         email: resData.email,
         userId: resData.localId,
@@ -119,6 +130,48 @@ export class AuthEffects {
                 this.router.navigate(["/"]);
             }))
         , {dispatch: false}) // this effect doesn't dispatch action, so this config is necessary
+
+    authAutoLogin = createEffect(() => this.actions$.pipe(
+        ofType(AuthActions.AUTO_LOGIN),
+        map(() => {
+            if (!localStorage.getItem('userData')) {
+                return new AuthActions.Logout();
+            }
+
+            const userData: {
+                email: string,
+                id: string,
+                _token: string,
+                _tokenExpirationDate: string
+                // @ts-ignore <- added ignore due to the fact that the localstorage item will never be null when it reaches this point
+            } = JSON.parse(localStorage.getItem('userData'));
+
+            const loadedUser: User = new User(
+                userData.email,
+                userData.id,
+                userData._token,
+                new Date(userData._tokenExpirationDate)
+            );
+
+            if (loadedUser.token) {
+                return new AuthActions.AuthSuccess({
+                    email: loadedUser.email,
+                    userId: loadedUser.id,
+                    token: loadedUser.token,
+                    expirationDate: new Date(userData._tokenExpirationDate),
+                });
+            }
+
+            return new AuthActions.Logout();
+        })
+    ));
+
+    authLogout = createEffect(() =>
+            this.actions$.pipe(ofType(AuthActions.LOGOUT),
+                tap(() => {
+                    localStorage.removeItem('userData');
+                }))
+        , {dispatch: false}) // it has to made clear that the effect doesn't dispatch actions
 
     // The Actions class is a big observable that allows us to react to actions dispatched, however the idea is not to change state here. New actions are dispatched from here to continue the flow, since this is the place for side effects.
     constructor(private actions$: Actions, private httpClient: HttpClient, private router: Router) { // $ suffix indicates that the variable contains an observable or a stream
