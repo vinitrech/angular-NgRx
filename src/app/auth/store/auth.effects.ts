@@ -6,6 +6,7 @@ import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 import {Router} from "@angular/router";
 import {User} from "../user.model";
+import {AuthService} from "../auth.service";
 
 export interface AuthResponseData {
     kind: string;
@@ -79,6 +80,9 @@ export class AuthEffects {
                 return this.httpClient.post<AuthResponseData>(environment.apiSignUpUrl,
                     postData,
                     postOptions).pipe(
+                    tap(resData => {
+                        this.authService.setLogoutTimer(+resData.expiresIn * 1000)
+                    }),
                     map(resData => {
                             return handleAuthentication(resData)
                         }
@@ -111,7 +115,9 @@ export class AuthEffects {
 
                     return this.httpClient.post<AuthResponseData>(environment.apiSignInUrl,
                         postData,
-                        postOptions).pipe(
+                        postOptions).pipe(tap(resData => {
+                            this.authService.setLogoutTimer(+resData.expiresIn * 1000)
+                        }),
                         map(resData => {
                                 return handleAuthentication(resData);
                             }
@@ -126,7 +132,7 @@ export class AuthEffects {
     ) // NgRx effects will handle subscription automatically | ofType can handle multiple types
 
     authRedirect = createEffect(() =>
-            this.actions$.pipe(ofType(AuthActions.AUTH_SUCCESS, AuthActions.LOGOUT), tap(() => {
+            this.actions$.pipe(ofType(AuthActions.AUTH_SUCCESS), tap(() => {
                 this.router.navigate(["/"]);
             }))
         , {dispatch: false}) // this effect doesn't dispatch action, so this config is necessary
@@ -154,6 +160,8 @@ export class AuthEffects {
             );
 
             if (loadedUser.token) {
+                const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
+                this.authService.setLogoutTimer(expirationDuration)
                 return new AuthActions.AuthSuccess({
                     email: loadedUser.email,
                     userId: loadedUser.id,
@@ -169,12 +177,14 @@ export class AuthEffects {
     authLogout = createEffect(() =>
             this.actions$.pipe(ofType(AuthActions.LOGOUT),
                 tap(() => {
+                    this.authService.clearLogoutTimer()
                     localStorage.removeItem('userData');
+                    this.router.navigate(['/auth']);
                 }))
         , {dispatch: false}) // it has to made clear that the effect doesn't dispatch actions
 
     // The Actions class is a big observable that allows us to react to actions dispatched, however the idea is not to change state here. New actions are dispatched from here to continue the flow, since this is the place for side effects.
-    constructor(private actions$: Actions, private httpClient: HttpClient, private router: Router) { // $ suffix indicates that the variable contains an observable or a stream
+    constructor(private actions$: Actions, private httpClient: HttpClient, private router: Router, private authService: AuthService) { // $ suffix indicates that the variable contains an observable or a stream
 
     }
 }

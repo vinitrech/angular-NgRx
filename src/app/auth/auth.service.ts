@@ -1,27 +1,27 @@
 import {Injectable} from "@angular/core";
-import {User} from "./user.model";
 import {Store} from "@ngrx/store";
 import * as fromApp from "../store/app.reducer"
-
-export interface AuthResponseData {
-    kind: string;
-    idToken: string;
-    email: string;
-    refreshToken: string;
-    expiresIn: string;
-    localId: string;
-    registered?: boolean;
-}
+import * as AuthActions from "./store/auth.actions"
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
-    token: string = '';
+    private tokenExpirationTimer: NodeJS.Timeout = setTimeout(() => {
+    }, 0);
 
     constructor(private store: Store<fromApp.AppState>) {
 
     }
 
-    autoLogin() {
+    setLogoutTimer(expirationDuration: number) {
+        this.clearLogoutTimer() // just for precaution
+        this.tokenExpirationTimer = setTimeout(() => {
+            this.store.dispatch(new AuthActions.Logout())
+        }, expirationDuration)
+    }
 
+    clearLogoutTimer() {
+        if (this.tokenExpirationTimer) {
+            clearTimeout(this.tokenExpirationTimer)
+        }
     }
 }
