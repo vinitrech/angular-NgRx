@@ -1,8 +1,8 @@
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import * as AuthActions from "./auth.actions"
-import {catchError, map, of, switchMap, tap, throwError} from "rxjs";
+import {catchError, map, of, switchMap, tap} from "rxjs";
 import {environment} from "../../../environments/environment";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 import {Router} from "@angular/router";
 
@@ -16,13 +16,69 @@ export interface AuthResponseData {
     registered?: boolean;
 }
 
+const handleAuthentication = (resData: AuthResponseData) => {
+    const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000);
+    return new AuthActions.AuthSuccess({ // this action gets dispatched automatically by createEffect()
+        email: resData.email,
+        userId: resData.localId,
+        token: resData.idToken,
+        expirationDate: expirationDate
+    });
+}
+
+const handleError = (error: HttpErrorResponse) => {
+    let errorMessage: string = 'An error occurred!';
+
+    if (error.error && error.error.error) {
+        switch (error.error.error.message) {
+            case 'EMAIL_EXISTS':
+                errorMessage = 'This email exists already!';
+                break;
+            case 'EMAIL_NOT_FOUND':
+                errorMessage = 'This email does not exist!';
+                break;
+            case 'INVALID_PASSWORD':
+                errorMessage = 'Incorrect password!';
+                break;
+        }
+    }
+
+    return of(new AuthActions.AuthFail(errorMessage));
+}
+
 @Injectable() // allowing other parts to be injected inside this effects class
 export class AuthEffects {
     // All actions dispatched run through the pipe, then ofType filters which type of action should be handled by this observer
 
-    authSignup = createEffect(() => {
-        this.actions$.pipe(ofType(AuthActions.SIGNUP_START))
-    })
+    authSignup = createEffect(() =>
+        this.actions$.pipe(ofType(AuthActions.SIGNUP_START),
+            switchMap((authData: AuthActions.SignupStart) => { // switchMap returns a new observable
+                const postData = {
+                    email: authData.payload.email,
+                    password: authData.payload.password,
+                    returnSecureToken: true
+                }
+
+                const postOptions = {
+                    params: {
+                        key: environment.apiKey
+                    }
+                }
+
+                return this.httpClient.post<AuthResponseData>(environment.apiSignUpUrl,
+                    postData,
+                    postOptions).pipe(
+                    map(resData => {
+                            return handleAuthentication(resData)
+                        }
+                    ),
+                    catchError((error: HttpErrorResponse) => { // must not return error here to avoid killing the main stream
+                        // catchError does not wrap the return inside a new observable, like map does
+                        return handleError(error);
+                    }))
+            })
+        )
+    );
 
     authLogin = createEffect(
         () =>
@@ -46,42 +102,20 @@ export class AuthEffects {
                         postData,
                         postOptions).pipe(
                         map(resData => {
-                                const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000);
-                                return new AuthActions.AuthSuccess({ // this action gets dispatched automatically by createEffect()
-                                    email: resData.email,
-                                    userId: resData.localId,
-                                    token: resData.idToken,
-                                    expirationDate: expirationDate
-                                });
+                                return handleAuthentication(resData);
                             }
                         ),
-                        catchError(error => { // must not return error here to avoid killing the main stream
+                        catchError((error: HttpErrorResponse) => { // must not return error here to avoid killing the main stream
                             // catchError does not wrap the return inside a new observable, like map does
 
-                            let errorMessage: string = 'An error occurred!';
-
-                            if (error.error && error.error.error) {
-                                switch (error.error.error.message) {
-                                    case 'EMAIL_EXISTS':
-                                        errorMessage = 'This email exists already!';
-                                        break;
-                                    case 'EMAIL_NOT_FOUND':
-                                        errorMessage = 'This email does not exist!';
-                                        break;
-                                    case 'INVALID_PASSWORD':
-                                        errorMessage = 'Incorrect password!';
-                                        break;
-                                }
-                            }
-
-                            return of(new AuthActions.AuthFail(errorMessage));
+                            return handleError(error);
                         }))
                 })
             )
     ) // NgRx effects will handle subscription automatically | ofType can handle multiple types
 
-    authSuccess = createEffect(() =>
-            this.actions$.pipe(ofType(AuthActions.AUTH_SUCCESS), tap(() => {
+    authRedirect = createEffect(() =>
+            this.actions$.pipe(ofType(AuthActions.AUTH_SUCCESS, AuthActions.LOGOUT), tap(() => {
                 this.router.navigate(["/"]);
             }))
         , {dispatch: false}) // this effect doesn't dispatch action, so this config is necessary

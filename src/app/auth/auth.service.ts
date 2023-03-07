@@ -1,9 +1,5 @@
 import {Injectable} from "@angular/core";
-import {HttpClient, HttpErrorResponse} from "@angular/common/http";
-import {BehaviorSubject, catchError, Subject, tap, throwError} from "rxjs";
 import {User} from "./user.model";
-import {Router} from "@angular/router";
-import {environment} from "../../environments/environment";
 import {Store} from "@ngrx/store";
 import * as fromApp from "../store/app.reducer"
 import * as AuthActions from "./store/auth.actions";
@@ -20,52 +16,10 @@ export interface AuthResponseData {
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
-    loggedUser: BehaviorSubject<null | User> = new BehaviorSubject<null | User>(null); // behaviorSubject will emit the latest value when a new subscriber listens
     token: string = '';
 
-    constructor(private httpClient: HttpClient, private router: Router, private store: Store<fromApp.AppState>) {
+    constructor(private store: Store<fromApp.AppState>) {
 
-    }
-
-    signup(authEmail: string, authPassword: string) {
-        const postData = {
-            email: authEmail,
-            password: authPassword,
-            returnSecureToken: true
-        }
-
-        const postOptions = {
-            params: {
-                key: environment.apiKey
-            }
-        }
-
-        return this.httpClient.post<AuthResponseData>(environment.apiSignUpUrl,
-            postData,
-            postOptions).pipe(catchError(this.handleError), tap(responseData => {
-            this.handleAuthentication(responseData.email, responseData.localId, responseData.idToken, +responseData.expiresIn);
-        })); // tap allows to manipulate data without changing the response
-    }
-
-    login(authEmail: string, authPassword: string) {
-        const postData = {
-            email: authEmail,
-            password: authPassword,
-            returnSecureToken: true
-        }
-
-        const postOptions = {
-            params: {
-                key: environment.apiKey
-            }
-        }
-
-        return this.httpClient.post<AuthResponseData>(environment.apiSignInUrl,
-            postData,
-            postOptions).pipe(catchError(this.handleError),
-            tap(responseData => {
-                this.handleAuthentication(responseData.email, responseData.localId, responseData.idToken, +responseData.expiresIn);
-            })); // tap allows to manipulate data without changing the response
     }
 
     autoLogin() {
@@ -98,45 +52,5 @@ export class AuthService {
         } else {
             localStorage.removeItem('userData');
         }
-    }
-
-    logout() {
-        localStorage.removeItem('userData');
-        this.store.dispatch(new AuthActions.Logout());
-        this.router.navigate(['/auth']);
-    }
-
-    private handleAuthentication(email: string, userId: string, token: string, expiresIn: number) {
-        const expirationDate = new Date(new Date().getTime() + expiresIn * 1000); // converts the response data to milliseconds and then add to current time
-        const user = new User(email, userId, token, expirationDate);
-        this.store.dispatch(new AuthActions.AuthSuccess({
-            email: user.email,
-            userId: user.id,
-            token: token,
-            expirationDate: expirationDate
-        }));
-        localStorage.setItem('userData', JSON.stringify(user));
-    }
-
-    private handleError(errorResponse: HttpErrorResponse) {
-        let errorMessage: string = 'An error occurred!';
-
-        if (!errorResponse.error || !errorResponse.error.error) {
-            return throwError(() => errorMessage);
-        }
-
-        switch (errorResponse.error.error.message) {
-            case 'EMAIL_EXISTS':
-                errorMessage = 'This email exists already!';
-                break;
-            case 'EMAIL_NOT_FOUND':
-                errorMessage = 'This email does not exist!';
-                break;
-            case 'INVALID_PASSWORD':
-                errorMessage = 'Incorrect password!';
-                break;
-        }
-
-        return throwError(() => errorMessage);
     }
 }
