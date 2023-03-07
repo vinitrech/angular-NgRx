@@ -20,6 +20,10 @@ export interface AuthResponseData {
 export class AuthEffects {
     // All actions dispatched run through the pipe, then ofType filters which type of action should be handled by this observer
 
+    authSignup = createEffect(() => {
+        this.actions$.pipe(ofType(AuthActions.SIGNUP_START))
+    })
+
     authLogin = createEffect(
         () =>
             this.actions$.pipe(
@@ -43,7 +47,7 @@ export class AuthEffects {
                         postOptions).pipe(
                         map(resData => {
                                 const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000);
-                                return new AuthActions.Login({ // this action gets dispatched automatically by createEffect()
+                                return new AuthActions.AuthSuccess({ // this action gets dispatched automatically by createEffect()
                                     email: resData.email,
                                     userId: resData.localId,
                                     token: resData.idToken,
@@ -70,14 +74,14 @@ export class AuthEffects {
                                 }
                             }
 
-                            return of(new AuthActions.LoginFailed(errorMessage));
+                            return of(new AuthActions.AuthFail(errorMessage));
                         }))
                 })
             )
     ) // NgRx effects will handle subscription automatically | ofType can handle multiple types
 
     authSuccess = createEffect(() =>
-            this.actions$.pipe(ofType(AuthActions.LOGIN), tap(() => {
+            this.actions$.pipe(ofType(AuthActions.AUTH_SUCCESS), tap(() => {
                 this.router.navigate(["/"]);
             }))
         , {dispatch: false}) // this effect doesn't dispatch action, so this config is necessary

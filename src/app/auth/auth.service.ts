@@ -89,7 +89,7 @@ export class AuthService {
         );
 
         if (loadedUser.token) {
-            this.store.dispatch(new AuthActions.Login({
+            this.store.dispatch(new AuthActions.AuthSuccess({
                 email: loadedUser.email,
                 userId: loadedUser.id,
                 token: loadedUser.token,
@@ -109,7 +109,7 @@ export class AuthService {
     private handleAuthentication(email: string, userId: string, token: string, expiresIn: number) {
         const expirationDate = new Date(new Date().getTime() + expiresIn * 1000); // converts the response data to milliseconds and then add to current time
         const user = new User(email, userId, token, expirationDate);
-        this.store.dispatch(new AuthActions.Login({
+        this.store.dispatch(new AuthActions.AuthSuccess({
             email: user.email,
             userId: user.id,
             token: token,
