@@ -31,7 +31,7 @@ import {StoreRouterConnectingModule} from "@ngrx/router-store";
         StoreDevtoolsModule.instrument({logOnly: environment.production}), // Store dev tools to sync with Redux Dev Tools extension for browser, to monitor actions on the go
         StoreRouterConnectingModule.forRoot(), // Bindings to connect Angular Router with Store
         HttpClientModule,
-        SharedModule,// Components, directives, pipes work standalone inside modules, so every module needs its own imports. The only exception are services, which can be declared in the AppModule only once, and used application wide
+        SharedModule, // Components, directives, pipes work standalone inside modules, so every module needs its own imports. The only exception are services, which can be declared in the AppModule only once, and used application wide
         CoreModule
     ],
     bootstrap: [AppComponent]
