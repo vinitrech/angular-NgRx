@@ -14,6 +14,7 @@ import {AuthEffects} from "./auth/store/auth.effects";
 import {StoreDevtoolsModule} from "@ngrx/store-devtools";
 import {environment} from "../environments/environment"
 import {StoreRouterConnectingModule} from "@ngrx/router-store";
+import {RecipesEffects} from "./recipes/store/recipes.effects";
 
 // There should not be unused imports here, they would be bundled even if not used.
 
@@ -27,7 +28,7 @@ import {StoreRouterConnectingModule} from "@ngrx/router-store";
         NgbModule,
         AppRoutingModule,
         StoreModule.forRoot(fromApp.appReducer), // upon initializing, there will be initial actions dispatched / any action dispatched hits ALL reducers
-        EffectsModule.forRoot([AuthEffects]),
+        EffectsModule.forRoot([AuthEffects, RecipesEffects]),
         StoreDevtoolsModule.instrument({logOnly: environment.production}), // Store dev tools to sync with Redux Dev Tools extension for browser, to monitor actions on the go
         StoreRouterConnectingModule.forRoot(), // Bindings to connect Angular Router with Store
         HttpClientModule,

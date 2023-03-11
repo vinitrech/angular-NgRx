@@ -1,8 +1,6 @@
 import {Injectable} from "@angular/core";
 import {HttpClient,} from "@angular/common/http";
 import {RecipesService} from "./recipesService";
-import {Recipe} from "./recipe.model";
-import {map, tap} from "rxjs";
 import {environment} from "../../environments/environment";
 import * as fromApp from "../store/app.reducer"
 import * as RecipesActions from "../recipes/store/recipes.actions"
@@ -21,14 +19,6 @@ export class DataStorageService {
     }
 
     fetchRecipes() {
-        return this.httpClient.get<Recipe[]>(environment.apiUrl)
-            .pipe(map(recipes => { // map is an operator, it operates on the array, and not each element
-                    return recipes.map(recipe => { // this map loops each item to perform operations
-                        return {...recipe, ingredients: recipe.ingredients ? recipe.ingredients : []};
-                    });
-                }),
-                tap(recipes => {
-                    this.store.dispatch(new RecipesActions.SetRecipes(recipes));
-                }));
+        this.store.dispatch(new RecipesActions.FetchRecipes());
     }
 }

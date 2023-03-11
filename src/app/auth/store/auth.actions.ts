@@ -21,7 +21,7 @@ export class LoginStart implements Action {
 export class AuthSuccess implements Action {
     readonly type: string = AUTH_SUCCESS;
 
-    constructor(public payload: { email: string, userId: string, token: string, expirationDate: Date }) {
+    constructor(public payload: { email: string, userId: string, token: string, expirationDate: Date, redirect: boolean; }) {
     }
 }
 
