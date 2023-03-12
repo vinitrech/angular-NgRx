@@ -1,44 +1,47 @@
 <div class="row">
   <div class="col-xs-12">
-    <img src="{{recipe.imagePath}}" alt="" class="img-fluid">
+    <img
+      [src]="recipe.imagePath"
+      alt="{{ recipe.name }}"
+      class="img-responsive"
+      style="max-height: 300px;">
   </div>
 </div>
-
 <div class="row">
   <div class="col-xs-12">
-    <h1>{{recipe.name}}</h1>
+    <h1>{{ recipe.name }}</h1>
   </div>
 </div>
-
 <div class="row">
   <div class="col-xs-12">
-    <div ngbDropdown class="d-inline-block">
-      <button type="button" class="btn btn-outline-primary" id="dropdownBasic1" ngbDropdownToggle>
-        Options <span class="caret"></span>
+    <div
+      class="btn-group"
+      appDropdown>
+      <button
+        type="button"
+        class="btn btn-primary dropdown-toggle">
+        Manage Recipe <span class="caret"></span>
       </button>
-      <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
-        <button ngbDropdownItem (click)="addToShoppingList()">Add to Shopping List</button>
-        <a [routerLink]="['edit']" ngbDropdownItem>
-          Edit Recipe
-        </a>
-        <button ngbDropdownItem (click)="deleteRecipe()">Delete Recipe</button>
-      </div>
+      <ul class="dropdown-menu">
+        <li><a (click)="onAddToShoppingList()" style="cursor: pointer;">To Shopping List</a></li>
+        <li><a style="cursor: pointer;" (click)="onEditRecipe()">Edit Recipe</a></li>
+        <li><a style="cursor: pointer;" (click)="onDeleteRecipe()">Delete Recipe</a></li>
+      </ul>
     </div>
   </div>
 </div>
-
 <div class="row">
   <div class="col-xs-12">
-    <p>{{recipe.description}}</p>
+    {{ recipe.description }}
   </div>
 </div>
-
 <div class="row">
   <div class="col-xs-12">
-    <h3>Ingredients</h3>
     <ul class="list-group">
-      <li class="list-item" *ngFor="let ingredient of recipe.ingredients">
-        {{ingredient.name}} - {{ingredient.amount}}
+      <li
+        class="list-group-item"
+        *ngFor="let ingredient of recipe.ingredients">
+        {{ ingredient.name }} - {{ ingredient.amount }}
       </li>
     </ul>
   </div>

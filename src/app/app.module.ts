@@ -1,41 +1,36 @@
-import {NgModule} from '@angular/core';
-import {BrowserModule} from '@angular/platform-browser';
-import {HttpClientModule} from "@angular/common/http";
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
-import {AppRoutingModule} from "./app-routing.module";
-import {AppComponent} from './app.component';
-import {HeaderComponent} from "./header/header.component";
-import {SharedModule} from "./shared/shared.module";
-import {CoreModule} from "./core.module";
-import {StoreModule} from "@ngrx/store";
-import * as fromApp from "./store/app.reducer";
-import {EffectsModule} from "@ngrx/effects";
-import {AuthEffects} from "./auth/store/auth.effects";
-import {StoreDevtoolsModule} from "@ngrx/store-devtools";
-import {environment} from "../environments/environment"
-import {StoreRouterConnectingModule} from "@ngrx/router-store";
-import {RecipesEffects} from "./recipes/store/recipes.effects";
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { StoreRouterConnectingModule } from '@ngrx/router-store';
 
-// There should not be unused imports here, they would be bundled even if not used.
+import { AppComponent } from './app.component';
+import { HeaderComponent } from './header/header.component';
+import { AppRoutingModule } from './app-routing.module';
+import { SharedModule } from './shared/shared.module';
+import { CoreModule } from './core.module';
+import * as fromApp from './store/app.reducer';
+import { AuthEffects } from './auth/store/auth.effects';
+import { environment } from '../environments/environment';
+import { RecipeEffects } from './recipes/store/recipe.effects';
+import * as fromAuth from './auth/store/auth.reducer';
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        HeaderComponent,
-    ],
-    imports: [ // Eager imports
-        BrowserModule,
-        NgbModule,
-        AppRoutingModule,
-        StoreModule.forRoot(fromApp.appReducer), // upon initializing, there will be initial actions dispatched / any action dispatched hits ALL reducers
-        EffectsModule.forRoot([AuthEffects, RecipesEffects]),
-        StoreDevtoolsModule.instrument({logOnly: environment.production}), // Store dev tools to sync with Redux Dev Tools extension for browser, to monitor actions on the go
-        StoreRouterConnectingModule.forRoot(), // Bindings to connect Angular Router with Store
-        HttpClientModule,
-        SharedModule, // Components, directives, pipes work standalone inside modules, so every module needs its own imports. The only exception are services, which can be declared in the AppModule only once, and used application wide
-        CoreModule
-    ],
-    bootstrap: [AppComponent]
+  declarations: [AppComponent, HeaderComponent],
+  imports: [
+    BrowserModule,
+    HttpClientModule,
+    AppRoutingModule,
+    StoreModule.forRoot({auth: fromAuth.authReducer}),
+    EffectsModule.forRoot([AuthEffects, RecipeEffects]),
+    StoreDevtoolsModule.instrument({ logOnly: environment.production }),
+    StoreRouterConnectingModule.forRoot(),
+    SharedModule,
+    CoreModule
+  ],
+  bootstrap: [AppComponent]
+  // providers: [LoggingService]
 })
-export class AppModule {
-}
+export class AppModule {}

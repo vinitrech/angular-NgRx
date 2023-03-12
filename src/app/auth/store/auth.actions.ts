@@ -1,52 +1,53 @@
-import {Action} from "@ngrx/store";
+import {createAction, props} from '@ngrx/store';
 
-export const LOGIN_START = "[Auth] Login Start"
-export const AUTH_FAIL = "[Auth] Auth Fail"
-export const AUTH_SUCCESS = '[Auth] Auth Success';
-export const LOGOUT = '[Auth] Logout';
-export const SIGNUP_START = '[Auth] Sign Up Start';
-export const CLEAR_ERROR = '[Auth] Clear Error';
-export const AUTO_LOGIN = '[Auth] Auto Login';
+export const loginStart = createAction(
+  '[Auth] Login Start',
+  props<{
+    email: string;
+    password: string
+  }>()
+);
 
-export class LoginStart implements Action {
-    readonly type: string = LOGIN_START
 
-    constructor(public payload: {
-        email: string,
-        password: string
-    }) {
-    }
-}
+export const signupStart = createAction(
+  '[Auth] Signup Start',
+  props<{
+    email: string;
+    password: string
+  }>()
+);
 
-export class AuthSuccess implements Action {
-    readonly type: string = AUTH_SUCCESS;
 
-    constructor(public payload: { email: string, userId: string, token: string, expirationDate: Date, redirect: boolean; }) {
-    }
-}
+export const authenticateSuccess = createAction(
+  '[Auth] Authenticate Success',
+  props<{
+    email: string;
+    userId: string;
+    token: string;
+    expirationDate: Date;
+    redirect: boolean
+  }>()
+);
 
-export class Logout implements Action {
-    readonly type: string = LOGOUT;
-}
 
-export class AuthFail implements Action {
-    readonly type: string = AUTH_FAIL
+export const authenticateFail = createAction(
+  '[Auth] Authenticate Fail',
+  props<{
+    errorMessage: string
+  }>()
+);
 
-    constructor(public payload: string) {
-    }
-}
 
-export class SignupStart implements Action {
-    readonly type = SIGNUP_START;
+export const clearError = createAction(
+  '[Auth] Clear Error'
+);
 
-    constructor(public payload: { email: string, password: string }) {
-    }
-}
 
-export class ClearError implements Action {
-    readonly type = CLEAR_ERROR;
-}
+export const autoLogin = createAction(
+  '[Auth] Auto Login'
+);
 
-export class AutoLogin implements Action {
-    readonly type = AUTO_LOGIN;
-}
+
+export const logout = createAction(
+  '[Auth] Logout'
+);

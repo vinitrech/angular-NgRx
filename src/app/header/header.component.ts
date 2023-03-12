@@ -1,46 +1,50 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
-import {map, Subscription} from "rxjs";
-import * as fromApp from "../store/app.reducer"
-import {Store} from "@ngrx/store";
-import * as AuthActions from "../auth/store/auth.actions"
-import * as RecipesActions from "../recipes/store/recipes.actions"
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+
+import * as fromApp from '../store/app.reducer';
+import * as AuthActions from '../auth/store/auth.actions';
+import * as RecipeActions from '../recipes/store/recipe.actions';
 
 @Component({
-    selector: 'app-header',
-    templateUrl: 'header.component.html',
-    styleUrls: ['header.component.css']
+  selector: 'app-header',
+  templateUrl: './header.component.html'
 })
-
 export class HeaderComponent implements OnInit, OnDestroy {
-    loggedUserSubscription: Subscription = new Subscription();
-    isMenuCollapsed: boolean = true;
-    isAuthenticated: boolean = false;
+  isAuthenticated = false;
+  private userSub: Subscription;
 
-    constructor(private store: Store<fromApp.AppState>) {
+  constructor(
+    private store: Store<fromApp.AppState>
+  ) {}
 
-    }
+  ngOnInit() {
+    this.userSub = this.store
+      .select('auth')
+      .pipe(map(authState => authState.user))
+      .subscribe(user => {
+        this.isAuthenticated = !!user;
+        console.log(!user);
+        console.log(!!user);
+      });
+  }
 
-    ngOnInit() {
-        this.loggedUserSubscription = this.store.select('auth')
-            .pipe(map(authState => authState.user))
-            .subscribe((user) => {
-                this.isAuthenticated = !!user; // checks if user is not null
-            });
-    }
+  onSaveData() {
+    // this.dataStorageService.storeRecipes();
+    this.store.dispatch(RecipeActions.storeRecipes());
+  }
 
-    ngOnDestroy() {
-        this.loggedUserSubscription.unsubscribe();
-    }
+  onFetchData() {
+    // this.dataStorageService.fetchRecipes().subscribe();
+    this.store.dispatch(RecipeActions.fetchRecipes());
+  }
 
-    onSaveData() {
-        this.store.dispatch(new RecipesActions.StoreRecipes());
-    }
+  onLogout() {
+    this.store.dispatch(AuthActions.logout());
+  }
 
-    onFetchData() {
-        this.store.dispatch(new RecipesActions.FetchRecipes());
-    }
-
-    onLogout() {
-        this.store.dispatch(new AuthActions.Logout());
-    }
+  ngOnDestroy() {
+    this.userSub.unsubscribe();
+  }
 }

@@ -1,25 +1,22 @@
-import {NgModule} from "@angular/core";
-import {ShoppingListComponent} from "./shopping-list.component";
-import {ShoppingEditComponent} from "./shopping-edit/shopping-edit.component";
-import {ShoppingListRoutingModule} from "./shopping-list-routing.module";
-import {FormsModule} from "@angular/forms";
-import {SharedModule} from "../shared/shared.module";
-import {LoggingService} from "../logging.service";
+import { NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
+import { ShoppingListComponent } from './shopping-list.component';
+import { ShoppingEditComponent } from './shopping-edit/shopping-edit.component';
+import { SharedModule } from '../shared/shared.module';
+import { LoggingService } from '../logging.service';
+import * as fromShoppingList from './store/shopping-list.reducer';
+import {StoreModule} from '@ngrx/store';
 
 @NgModule({
-    declarations: [
-        ShoppingListComponent,
-        ShoppingEditComponent
-    ],
-    imports: [
-        FormsModule,
-        ShoppingListRoutingModule,
-        SharedModule
-    ],
-    // Services provided in Lazy-loaded modules create a separate instance for the module
-    // providers: [
-    //     LoggingService
-    // ]
+  declarations: [ShoppingListComponent, ShoppingEditComponent],
+  imports: [
+    FormsModule,
+    RouterModule.forChild([{ path: '', component: ShoppingListComponent }]),
+    StoreModule.forFeature('shoppingList', fromShoppingList.shoppingListReducer),
+    SharedModule
+  ],
+  // providers: [LoggingService]
 })
-export class ShoppingListModule {
-}
+export class ShoppingListModule {}

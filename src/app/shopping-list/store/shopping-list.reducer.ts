@@ -1,81 +1,83 @@
-import {Ingredient} from "../../shared/ingredient.model";
-import * as ShoppingListActions from "./shopping-list.actions";
-import {Action} from "@ngrx/store";
+import { Action, createReducer, on } from '@ngrx/store';
+import { Ingredient } from '../../shared/ingredient.model';
+import * as ShoppingListActions from './shopping-list.actions';
 
-export interface State { // always prefer interfaces to types, only use types when interfaces don't suffice
-    ingredients: Ingredient[],
-    editedIngredient: Ingredient | null,
-    editedIngredientIndex: number
+
+export interface State {
+  ingredients: Ingredient[];
+  editIndex: number;
 }
+
 
 const initialState: State = {
-    ingredients: [
-        new Ingredient("Apples", 1),
-        new Ingredient("Tomatoes", 1)
-    ],
-    editedIngredient: null,
-    editedIngredientIndex: -1
-}
+  ingredients: [
+    new Ingredient('Apples', 5),
+    new Ingredient('Tomatoes', 10)
+  ],
+  editIndex: -1
+};
 
-export function shoppingListReducer(state: State = initialState, action: Action) { // default value assignment to the state param
-    switch (action.type) {
-        case ShoppingListActions.ADD_INGREDIENT: // naming convention
-            return {
-                ...state, // always copy the old data and then override what's needed
-                ingredients: [ // override ingredients
-                    ...state.ingredients,
-                    (<ShoppingListActions.AddIngredient>action).payload
-                ]
-            };
-        case ShoppingListActions.ADD_INGREDIENTS:
-            return {
-                ...state,
-                ingredients: [
-                    ...state.ingredients,
-                    ...(<ShoppingListActions.AddIngredients>action).payload
-                ]
-            };
-        case ShoppingListActions.UPDATE_INGREDIENT:
 
-            // ############## IMPORTANT ##############
-            // Always edit data immutably, copying and editing the new object and not altering the state directly
+const _shoppingListReducer = createReducer(
 
-            const updatedIngredient = {
-                ...state.ingredients[state.editedIngredientIndex], // copy all values from previous state
-                ...(<ShoppingListActions.UpdateIngredient>action).payload // override properties with updated values
-            }
+  initialState,
 
-            const updatedIngredients = [...state.ingredients];
-            updatedIngredients[state.editedIngredientIndex] = updatedIngredient;
+  on(
+    ShoppingListActions.addIngredient,
+    (state, action) => ({
+      ...state,
+      ingredients: state.ingredients.concat(action.ingredient)
+    })
+  ),
 
-            return {
-                ...state,
-                ingredients: updatedIngredients,
-                editedIngredientIndex: -1,
-                editedIngredient: null
-            };
-        case ShoppingListActions.DELETE_INGREDIENT:
-            return {
-                ...state,
-                ingredients: state.ingredients.filter((ig, igIndex) => {
-                    return igIndex !== state.editedIngredientIndex
-                }),
-                editedIngredientIndex: -1,
-                editedIngredient: null
-            };
-        case ShoppingListActions.START_EDIT:
-            return {
-                ...state,
-                editedIngredientIndex: (<ShoppingListActions.StartEdit>action).payload,
-                updatedIngredient: {...state.ingredients[(<ShoppingListActions.StartEdit>action).payload]} // copy the ingredient to a new object, because ingredients are an array inside the state, and it is a reference type. So, if we should edit the ingredient, it would change directly inside the store, which is wrong.
-            };
-        case ShoppingListActions.STOP_EDIT:
-            return {
-                ...state,
-                editedIngredient: null,
-                editedIngredientIndex: -1
-            };
-        default:
-            return state;
-    }
+  on(
+    ShoppingListActions.addIngredients,
+    (state, action) => ({
+      ...state,
+      ingredients: state.ingredients.concat(...action.ingredients)
+    })
+  ),
+
+  on(
+    ShoppingListActions.updateIngredient,
+    (state, action) => ({
+      ...state,
+      editIndex: -1,
+      ingredients: state.ingredients.map(
+        (ingredient, index) => index === state.editIndex ? { ...action.ingredient } : ingredient
+      )
+    })
+  ),
+
+  on(
+    ShoppingListActions.deleteIngredient,
+    (state) => ({
+      ...state,
+      editIndex: -1,
+      ingredients: state.ingredients.filter(
+        (_, index) => index !== state.editIndex
+      )
+    })
+  ),
+
+  on(
+    ShoppingListActions.startEdit,
+    (state, action) => ({
+      ...state, editIndex:
+      action.index
+    })
+  ),
+
+  on(
+    ShoppingListActions.stopEdit,
+    (state) => ({
+      ...state, editIndex: -1
+    })
+  )
+
+);
+
+
+export function shoppingListReducer(state: State, action: Action) {
+  return _shoppingListReducer(state, action);
 }

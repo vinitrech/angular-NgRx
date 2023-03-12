@@ -1,36 +1,37 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
+<nav class="navbar navbar-default">
   <div class="container-fluid">
-    <a class="navbar-brand" href="#">Header</a>
+    <div class="navbar-header">
+      <a routerLink="/" class="navbar-brand">Recipe Book</a>
+    </div>
 
-    <button class="navbar-toggler" type="button" (click)="isMenuCollapsed = !isMenuCollapsed">&#9776;</button>
-
-    <div [ngbCollapse]="isMenuCollapsed" class="collapse navbar-collapse">
-      <ul class="navbar-nav">
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" [routerLinkActive]="'active'" [routerLink]="['/recipes']">Recipes</a>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li routerLinkActive="active" *ngIf="isAuthenticated">
+          <a routerLink="/recipes">Recipes</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" [routerLinkActive]="'active'" [routerLink]="['/shopping-list']">Shopping List</a>
+        <li routerLinkActive="active" *ngIf="!isAuthenticated">
+          <a routerLink="/auth">Authenticate</a>
         </li>
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <div ngbDropdown class="d-inline-block">
-            <a type="button" class="nav-link" id="dropdownBasicTop" ngbDropdownToggle> Manage <span
-              class="caret"></span> </a>
-            <div ngbDropdownMenu aria-labelledby="dropdownBasicTop">
-              <button ngbDropdownItem (click)="onFetchData()">Fetch data</button>
-              <button ngbDropdownItem (click)="onSaveData()">Save data</button>
-            </div>
-          </div>
+        <li routerLinkActive="active">
+          <a routerLink="/shopping-list">Shopping List</a>
         </li>
-
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" style="cursor: pointer;" (click)="onLogout()">
-            Logout
-          </a>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li *ngIf="isAuthenticated">
+          <a style="cursor: pointer;" (click)="onLogout()">Logout</a>
         </li>
-
-        <li class="nav-item" *ngIf="!isAuthenticated">
-          <a class="nav-link" [routerLinkActive]="'active'" [routerLink]="['/auth']">Authenticate</a>
+        <li class="dropdown" appDropdown *ngIf="isAuthenticated">
+          <a style="cursor: pointer;" class="dropdown-toggle" role="button"
+            >Manage <span class="caret"></span
+          ></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a style="cursor: pointer;" (click)="onSaveData()">Save Data</a>
+            </li>
+            <li>
+              <a style="cursor: pointer;" (click)="onFetchData()">Fetch Data</a>
+            </li>
+          </ul>
         </li>
       </ul>
     </div>

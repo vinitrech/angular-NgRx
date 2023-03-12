@@ -1,90 +1,99 @@
 import {
-    Component,
-    OnDestroy, OnInit,
-    ViewChild,
-} from "@angular/core";
-import {NgForm} from "@angular/forms";
-import {AuthService} from "./auth.service";
-import {Subscription} from "rxjs";
-import {Router} from "@angular/router";
-import {AlertComponent} from "../shared/alert/alert.component";
-import {PlaceholderDirective} from "../shared/placeholder/placeholder.directive";
-import {Store} from "@ngrx/store";
-import * as fromApp from "../store/app.reducer"
-import * as AuthActions from "../auth/store/auth.actions"
+  Component,
+  ComponentFactoryResolver,
+  ViewChild,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
+import { NgForm } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { Store } from '@ngrx/store';
+
+import { AlertComponent } from '../shared/alert/alert.component';
+import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
+import * as fromApp from '../store/app.reducer';
+import * as AuthActions from './store/auth.actions';
 
 @Component({
-    selector: 'app-auth',
-    templateUrl: 'auth.component.html'
+  selector: 'app-auth',
+  templateUrl: './auth.component.html'
 })
-export class AuthComponent implements OnDestroy, OnInit {
-    isLoginMode: boolean = true;
-    isLoading: boolean = false;
-    @ViewChild(PlaceholderDirective) alertPlaceholder !: PlaceholderDirective; // ViewChild will search for the first occurrence of the informed type
-    alertCloseSubscription: Subscription = new Subscription();
-    authSubscription: Subscription = new Subscription();
+export class AuthComponent implements OnInit, OnDestroy {
+  isLoginMode = true;
+  isLoading = false;
+  error: string = null;
+  @ViewChild(PlaceholderDirective, { static: false }) alertHost: PlaceholderDirective;
 
-    constructor(private authService: AuthService, private router: Router,
-                private store: Store<fromApp.AppState>) {
+  private closeSub: Subscription;
+  private storeSub: Subscription;
+
+  constructor(
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private store: Store<fromApp.AppState>
+  ) {}
+
+  ngOnInit() {
+    this.storeSub = this.store.select('auth').subscribe(authState => {
+      this.isLoading = authState.loading;
+      this.error = authState.authError;
+      if (this.error) {
+        this.showErrorAlert(this.error);
+      }
+    });
+  }
+
+  onSwitchMode() {
+    this.isLoginMode = !this.isLoginMode;
+  }
+
+  onSubmit(form: NgForm) {
+    if (!form.valid) {
+      return;
+    }
+    const email = form.value.email;
+    const password = form.value.password;
+
+    if (this.isLoginMode) {
+      // authObs = this.authService.login(email, password);
+      this.store.dispatch(
+        AuthActions.loginStart({ email, password })
+      );
+    } else {
+      this.store.dispatch(
+        AuthActions.signupStart({ email, password })
+      );
     }
 
-    ngOnInit() {
-        this.authSubscription = this.store.select('auth').subscribe(authState => {
-            this.isLoading = authState.loading
-            if (authState.authError) {
-                this.showErrorAlert(authState.authError);
-            }
-        })
+    form.reset();
+  }
+
+  onHandleError() {
+    this.store.dispatch(AuthActions.clearError());
+  }
+
+  ngOnDestroy() {
+    if (this.closeSub) {
+      this.closeSub.unsubscribe();
     }
-
-    ngOnDestroy(): void {
-        if (this.alertCloseSubscription) {
-            this.alertCloseSubscription.unsubscribe();
-        }
-        this.authSubscription.unsubscribe()
+    if (this.storeSub) {
+      this.storeSub.unsubscribe();
     }
+  }
 
-    private showErrorAlert(message: string) {
-        this.alertPlaceholder.viewContainerRef.clear();
-        const alertComponent = this.alertPlaceholder.viewContainerRef.createComponent<AlertComponent>(AlertComponent);
+  private showErrorAlert(message: string) {
+    // const alertCmp = new AlertComponent();
+    const alertCmpFactory = this.componentFactoryResolver.resolveComponentFactory(
+      AlertComponent
+    );
+    const hostViewContainerRef = this.alertHost.viewContainerRef;
+    hostViewContainerRef.clear();
 
-        alertComponent.instance.message = message;
-        this.alertCloseSubscription = alertComponent.instance.close.subscribe(() => {
-            this.alertCloseSubscription.unsubscribe();
-            this.alertPlaceholder.viewContainerRef.clear();
-            this.onHandleError();
-        });
-    }
+    const componentRef = hostViewContainerRef.createComponent(alertCmpFactory);
 
-    onHandleError() {
-        this.store.dispatch(new AuthActions.ClearError());
-    }
-
-    onSwitchMode() {
-        this.isLoginMode = !this.isLoginMode;
-    }
-
-    onSubmit(formValue: NgForm) {
-        if (!formValue.valid) {
-            return
-        }
-
-        const email = formValue.value.email;
-        const password = formValue.value.password;
-
-        if (this.isLoginMode) {
-            this.store.dispatch(new AuthActions.LoginStart({
-                email: email,
-                password: password
-            }))
-        } else {
-            this.store.dispatch(new AuthActions.SignupStart({
-                    email: email,
-                    password: password
-                }
-            ))
-        }
-
-        formValue.reset();
-    }
+    componentRef.instance.message = message;
+    this.closeSub = componentRef.instance.close.subscribe(() => {
+      this.closeSub.unsubscribe();
+      hostViewContainerRef.clear();
+    });
+  }
 }
